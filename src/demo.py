@@ -388,6 +388,35 @@ def facture_multi_chantiers() -> FactureDemo:
     )
 
 
+def facture_numeros_bruites() -> FactureDemo:
+    """Reprend les formes de N° Bon rencontrees en production.
+
+    La colonne N° Bon des vraies factures ramene un prefixe de centrale (`CE`) et le
+    debut du libelle accole au numero (`Retour`, `PHeure`, `R4`, `M3`...). Seul le
+    numero doit etre retenu.
+    """
+    return FactureDemo(
+        numero="1900200713",
+        jour=date(2026, 4, 30),
+        echeance=date(2026, 6, 14),
+        chantiers=[
+            ChantierDemo(
+                code="PBL",
+                nom="PUITS BALANSA",
+                adresse=["25 Avenue Benjamin Balansa", "31500 Toulouse"],
+                lignes=[
+                    LigneDemo("CE 123482Retour", "D2B10 Agilia C35/45", 2.0, 160.00),
+                    LigneDemo("147375PHeure", "D2B12 Beton XC4 C30/37", 3.0, 150.00),
+                    LigneDemo("CE 244892Annulati", "D2B14 Beton XA1 C25/30", 1.5, 140.00),
+                    LigneDemo("158022PM3", "D2B16 Chape fluide", 4.0, 130.00),
+                    LigneDemo("184047", "D2B18 Mortier de montage", 2.5, 120.00),
+                    LigneDemo("158010A7", "D2B20 Beton XF1 C25/30", 3.5, 145.00),
+                ],
+            )
+        ],
+    )
+
+
 def factures_groupees() -> list[FactureDemo]:
     """Trois factures dans un meme PDF, chacune suivie de ses conditions generales."""
     base = facture_simple()
@@ -450,6 +479,11 @@ def generer(dossier: Path) -> list[Path]:
     cible.write_bytes(ecrire(pages_facture(multi)))
     fichiers.append(cible)
 
+    bruitee = facture_numeros_bruites()
+    cible = dossier / f"Facture_{bruitee.numero}_numeros-bruites.pdf"
+    cible.write_bytes(ecrire(pages_facture(bruitee)))
+    fichiers.append(cible)
+
     pages: list[list[Texte]] = []
     for facture in factures_groupees():
         pages += pages_facture(facture)
@@ -461,7 +495,9 @@ def generer(dossier: Path) -> list[Path]:
     cible.write_bytes(bon_de_livraison("CE 293982(F65)", simple.numero, 1.5))
     fichiers.append(cible)
 
-    cible = dossier / "bon_294100.pdf"
+    # Nom de fichier qui ne porte aucun numero : ce bon ne peut etre retrouve
+    # qu'en lisant le contenu du PDF.
+    cible = dossier / "Bon-de-livraison-juillet.pdf"
     cible.write_bytes(bon_de_livraison("CE 294100(F65)", multi.numero, 6.0))
     fichiers.append(cible)
 

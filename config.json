@@ -14,6 +14,8 @@
   "tolerance_totaux": 0.02,
   "lignes_adresse_max": 4,
   "seuil_fusion_nombre": 6.0,
+  "_aide_numero_bon": "Nombre minimum de chiffres d'un numero de bon. Evite de confondre le numero avec les chiffres d'un code accole (M3, R4, A7).",
+  "longueur_min_numero_bon": 4,
 
   "_aide_colonnes": "Bornes en points PDF (595 pts = largeur A4). 'gauche' = repere sur le bord gauche du mot, 'droite' = sur le bord droit (colonnes de nombres alignees a droite). Utiliser LANCER.bat diagnostic pour relever les coordonnees reelles d'un PDF.",
   "colonnes": {

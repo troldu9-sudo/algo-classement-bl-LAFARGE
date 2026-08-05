@@ -103,22 +103,44 @@ def quantite_unite(texte: str | None) -> tuple[float | None, str]:
     return nombre_fr(m.group(1)), (m.group(2) or "")
 
 
-def normaliser_bon(texte: str | None) -> tuple[str, str]:
-    """Normalise un numero de bon pour le rapprochement de fichiers.
+_CHIFFRES = re.compile(r"\d+")
+_PARENTHESE = re.compile(r"\(([^)]*)\)")
 
-    `CE 293982(F65)` -> ("CE293982", "F65"). La cle sert a retrouver le PDF du bon
-    quel que soit son formatage ; la variante entre parentheses est conservee a part.
+
+def decomposer_bon(texte: str | None, longueur_min: int = 4) -> tuple[str, str, str]:
+    """Isole le numero de bon du reste de la cellule N° Bon.
+
+    Rend `(numero, variante, complement)` :
+
+        `CE 293982(F65)`     -> ("293982", "F65", "")
+        `CE 123482Retour`    -> ("123482", "",    "Retour")
+        `158022PM3`          -> ("158022", "",    "PM3")
+        `184047`             -> ("184047", "",    "")
+
+    Le prefixe de centrale (`CE`) ne fait pas partie du numero et est ecarte. Le texte
+    accole apres le numero appartient au libelle de la ligne : il est rendu a part pour
+    y etre rattache, plutot que d'etre perdu.
+
+    `longueur_min` evite de confondre le numero avec les chiffres d'un code accole
+    (`M3`, `R4`, `A7`) : seuls les groupes assez longs sont candidats, et a defaut le
+    plus long groupe present est retenu pour ne jamais rendre un numero vide a tort.
     """
     if not texte:
-        return "", ""
-    brut = texte.strip()
+        return "", "", ""
+
     variante = ""
-    m = re.search(r"\(([^)]*)\)", brut)
-    if m:
-        variante = m.group(1).strip()
-        brut = brut[: m.start()] + brut[m.end() :]
-    cle = re.sub(r"[^A-Za-z0-9]", "", brut).upper()
-    return cle, variante
+    trouve = _PARENTHESE.search(texte)
+    if trouve:
+        variante = trouve.group(1).strip()
+        texte = texte[: trouve.start()] + " " + texte[trouve.end() :]
+
+    groupes = list(_CHIFFRES.finditer(texte))
+    if not groupes:
+        return "", variante, texte.strip()
+
+    assez_longs = [g for g in groupes if len(g.group()) >= longueur_min]
+    numero = max(assez_longs or groupes, key=lambda g: len(g.group()))
+    return numero.group(), variante, texte[numero.end() :].strip(" -").strip()
 
 
 def sans_accents(texte: str) -> str:

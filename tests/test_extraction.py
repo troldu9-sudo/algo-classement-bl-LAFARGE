@@ -56,7 +56,7 @@ def test_ligne_de_livraison(dossier_demo, config_demo):
     assert len(facture.livraisons) == 1
     ligne = facture.livraisons[0]
     assert ligne.n_bon_brut == "CE 293982(F65)"
-    assert ligne.n_bon == "CE293982"
+    assert ligne.n_bon == "293982"
     assert ligne.variante == "F65"
     assert ligne.date_livraison == date(2026, 6, 16)
     assert ligne.site_expediteur == "LARRIEU"
@@ -105,7 +105,7 @@ def test_plusieurs_chantiers_et_plusieurs_taux(dossier_demo, config_demo):
 def test_montant_superieur_a_mille(dossier_demo, config_demo):
     """Le separateur de milliers coupe le nombre en deux mots : il doit etre recolle."""
     facture = extraire_une(dossier_demo / "Facture_1900200712_multi-chantiers.pdf", config_demo)
-    ligne = next(l for l in facture.livraisons if l.n_bon == "CE294250")
+    ligne = next(l for l in facture.livraisons if l.n_bon == "294250")
     assert ligne.quantite == 12.0
     assert ligne.prix_unitaire == 138.40
     assert ligne.montant_ht == 1660.80
@@ -114,7 +114,7 @@ def test_montant_superieur_a_mille(dossier_demo, config_demo):
 
 def test_livraison_de_decembre_facturee_plus_tard(dossier_demo, config_demo):
     facture = extraire_une(dossier_demo / "Facture_1900200712_multi-chantiers.pdf", config_demo)
-    ligne = next(l for l in facture.livraisons if l.n_bon == "CE294101")
+    ligne = next(l for l in facture.livraisons if l.n_bon == "294101")
     assert ligne.date_livraison == date(2025, 12, 28)
 
 
@@ -132,3 +132,43 @@ def test_un_bon_de_livraison_n_est_pas_pris_pour_une_facture(dossier_demo, confi
     from conftest import extraire_toutes
 
     assert extraire_toutes(dossier_demo / "BL_CE293982.pdf", config_demo) == []
+
+
+def test_le_numero_de_bon_est_debarrasse_du_prefixe_et_du_texte_accole(
+    dossier_demo, config_demo
+):
+    """Seul le numero est retenu : ni le prefixe de centrale, ni le libelle accole."""
+    facture = extraire_une(dossier_demo / "Facture_1900200713_numeros-bruites.pdf", config_demo)
+    assert [l.n_bon for l in facture.livraisons] == [
+        "123482",
+        "147375",
+        "244892",
+        "158022",
+        "184047",
+        "158010",
+    ]
+
+
+def test_aucun_numero_de_bon_ne_contient_de_lettre(dossier_demo, config_demo):
+    from conftest import extraire_toutes
+
+    for pdf in sorted(dossier_demo.glob("Facture*.pdf")):
+        for facture in extraire_toutes(pdf, config_demo):
+            for ligne in facture.livraisons:
+                assert ligne.n_bon.isdigit(), f"{pdf.name} : {ligne.n_bon!r}"
+
+
+def test_le_texte_accole_au_numero_rejoint_le_libelle(dossier_demo, config_demo):
+    """Ce qui est retire du N° Bon n'est pas perdu : il appartient au libelle de la ligne."""
+    facture = extraire_une(dossier_demo / "Facture_1900200713_numeros-bruites.pdf", config_demo)
+    libelles = {l.n_bon: l.libelle for l in facture.livraisons}
+    assert libelles["123482"] == "D2B10 Agilia C35/45 Retour"
+    assert libelles["158022"] == "D2B16 Chape fluide PM3"
+    assert libelles["184047"] == "D2B18 Mortier de montage"
+
+
+def test_les_totaux_restent_justes_malgre_les_numeros_bruites(dossier_demo, config_demo):
+    modele = demo.facture_numeros_bruites()
+    facture = extraire_une(dossier_demo / "Facture_1900200713_numeros-bruites.pdf", config_demo)
+    assert facture.total_ht == modele.total_ht
+    assert facture.volume_total == modele.volume

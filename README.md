@@ -50,6 +50,25 @@ présents et ne refait pas deux fois le même travail.
 
 Les colonnes **PDF facture** et **PDF bon** sont cliquables : un clic ouvre le document.
 
+### La colonne N° Bon
+
+Elle ne contient **que le numéro du bon**, rien d'autre. La colonne N° Bon des factures
+Lafarge ramène en effet deux choses parasites :
+
+- un **préfixe de centrale** (`CE 123482`) ;
+- le **début du libellé collé au numéro** (`123482Retour`, `147375PHeure`, `158022PM3`,
+  `244892Annulati`, `158010A7`…).
+
+L'outil isole le numéro et l'écrit seul : `123482`, `147375`, `158022`. Le texte qui suivait
+le numéro n'est pas jeté pour autant — il rejoint la colonne **Designation** de la même
+ligne, à laquelle il appartient.
+
+Le numéro est écrit en **texte** et non en nombre : c'est un identifiant, jamais une
+grandeur à additionner, et la colonne reste ainsi homogène quel que soit le bon.
+
+Un même bon peut apparaître sur plusieurs lignes : c'est normal quand une livraison
+couvre plusieurs produits.
+
 ### L'onglet « A verifier »
 
 C'est le garde-fou de l'outil. **Rien n'est jamais écarté en silence** : ce qui n'a pas pu
@@ -91,6 +110,7 @@ Le fichier **`config.json`** s'ouvre au Bloc-notes. Les réglages courants :
 | `apparier_bons_de_livraison` | Mettre `false` pour ne pas chercher les PDF de bons dans le dossier |
 | `ouvrir_tableur_a_la_fin` | Mettre `false` pour ne pas ouvrir Excel automatiquement |
 | `tolerance_totaux` | Écart en euros toléré avant de signaler une incohérence (0,02 € par défaut) |
+| `longueur_min_numero_bon` | Nombre minimum de chiffres d'un numéro de bon (4 par défaut). Empêche de confondre le numéro avec les chiffres d'un code collé comme `M3`, `R4` ou `A7` |
 
 Les sections `colonnes` et `motifs` décrivent la mise en page des factures Lafarge. Vous
 n'avez normalement pas à y toucher — sauf si Lafarge change la présentation de ses

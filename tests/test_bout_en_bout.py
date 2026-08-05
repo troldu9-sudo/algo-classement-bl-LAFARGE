@@ -21,11 +21,12 @@ def test_le_dossier_entier_est_traite(config_demo):
     assert numeros == [
         "1900200711",
         "1900200712",
+        "1900200713",
         "1900300001",
         "1900300002",
         "1900300003",
     ]
-    assert sum(len(f.livraisons) for f in resultat.factures) == 7
+    assert sum(len(f.livraisons) for f in resultat.factures) == 13
 
 
 def test_les_pdf_groupes_sont_decoupes(config_demo):
@@ -70,7 +71,10 @@ def test_les_bons_sont_rapproches(config_demo):
         for l in f.livraisons
         if l.pdf_bon
     }
-    assert rapproches == {"CE293982": "BL_CE293982.pdf", "CE294100": "bon_294100.pdf"}
+    assert rapproches == {
+        "293982": "BL_CE293982.pdf",
+        "294100": "Bon-de-livraison-juillet.pdf",
+    }
 
 
 def test_le_pdf_scanne_est_signale(config_demo):
@@ -116,7 +120,7 @@ def test_l_onglet_detail_liste_tous_les_bons(config_demo):
     _, cible = _executer(config_demo)
 
     feuille = load_workbook(cible)["Detail BL"]
-    assert feuille.max_row == 8  # sept bons plus la ligne d'en-tete
+    assert feuille.max_row == 14  # treize bons plus la ligne d'en-tete
     entetes = [c.value for c in feuille[1]]
     assert entetes[:3] == ["N° facture", "Date facture", "N° Bon"]
 

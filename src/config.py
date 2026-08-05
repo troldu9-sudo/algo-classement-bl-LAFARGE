@@ -48,6 +48,7 @@ class Config:
     tolerance_totaux: float = 0.02
     lignes_adresse_max: int = 4
     seuil_fusion_nombre: float = 6.0
+    longueur_min_numero_bon: int = 4
     colonnes: list[Colonne] = field(default_factory=list)
     colonnes_recap_tva: list[Colonne] = field(default_factory=list)
     motifs: dict[str, re.Pattern[str]] = field(default_factory=dict)
@@ -126,6 +127,7 @@ def charger(chemin: Path | None = None, dossier_force: Path | None = None) -> Co
         tolerance_totaux=float(brut.get("tolerance_totaux", 0.02)),
         lignes_adresse_max=int(brut.get("lignes_adresse_max", 4)),
         seuil_fusion_nombre=float(brut.get("seuil_fusion_nombre", 6.0)),
+        longueur_min_numero_bon=int(brut.get("longueur_min_numero_bon", 4)),
         colonnes=_colonnes(brut.get("colonnes", {})),
         colonnes_recap_tva=_colonnes(brut.get("colonnes_recap_tva", {})),
         motifs=_motifs(brut.get("motifs", {})),

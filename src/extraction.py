@@ -12,7 +12,7 @@ from pathlib import Path
 
 from .config import Config
 from .decoupe import BlocFacture
-from .formats import date_fr, date_livraison, nombre_fr, normaliser_bon, quantite_unite
+from .formats import date_fr, date_livraison, decomposer_bon, nombre_fr, quantite_unite
 from .modeles import Chantier, Facture, Ligne, LigneAnnexe, LigneLivraison, LigneTva, Page
 
 # Lignes d'habillage a ne jamais confondre avec des lignes de tableau.
@@ -100,13 +100,18 @@ def _recapitulatif_tva(ligne: Ligne) -> LigneTva | None:
     return LigneTva(code=ligne.cellule_recap("code").strip(), **valeurs)
 
 
-def _livraison(ligne: Ligne, facture: Facture, chantier: Chantier, libelle: str) -> LigneLivraison:
-    n_bon_brut = ligne.cellule("n_bon").strip()
-    cle, variante = normaliser_bon(n_bon_brut)
+def _livraison(
+    ligne: Ligne,
+    facture: Facture,
+    chantier: Chantier,
+    libelle: str,
+    numero: str,
+    variante: str,
+) -> LigneLivraison:
     quantite, unite = quantite_unite(ligne.cellule("quantite"))
     return LigneLivraison(
-        n_bon_brut=n_bon_brut,
-        n_bon=cle,
+        n_bon_brut=ligne.cellule("n_bon").strip(),
+        n_bon=numero,
         variante=variante,
         date_livraison=date_livraison(ligne.cellule("date_livraison"), facture.date_facture),
         site_expediteur=ligne.cellule("site_expediteur").strip(),
@@ -200,12 +205,20 @@ def extraire(bloc: BlocFacture, config: Config, source: Path) -> Facture:
                 continue
 
             montant = nombre_fr(ligne.cellule("montant_ht"))
-            n_bon = ligne.cellule("n_bon").strip()
+            # Le prefixe de centrale et le texte accole au numero sont ecartes ici : seul
+            # le numero de bon compte, le reste rejoint le libelle de la ligne.
+            numero, variante, complement = decomposer_bon(
+                ligne.cellule("n_bon"), config.longueur_min_numero_bon
+            )
+            libelle = " ".join(
+                p for p in (tampon_libelle, libelle_cellule, complement) if p
+            ).strip()
 
-            if montant is not None and (n_bon or libelle_cellule or tampon_libelle):
-                libelle = " ".join(p for p in (tampon_libelle, libelle_cellule) if p).strip()
-                if n_bon:
-                    facture.livraisons.append(_livraison(ligne, facture, chantier, libelle))
+            if montant is not None and (numero or libelle):
+                if numero:
+                    facture.livraisons.append(
+                        _livraison(ligne, facture, chantier, libelle, numero, variante)
+                    )
                 else:
                     facture.annexes.append(_annexe(ligne, chantier, libelle))
                 tampon_libelle = ""

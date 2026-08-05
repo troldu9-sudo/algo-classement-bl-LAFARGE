@@ -11,8 +11,8 @@ from src.formats import (
     date_fr,
     date_iso,
     date_livraison,
+    decomposer_bon,
     nombre_fr,
-    normaliser_bon,
     quantite_unite,
 )
 
@@ -74,16 +74,44 @@ def test_quantite_unite(texte, quantite, unite):
 
 
 @pytest.mark.parametrize(
-    "texte, cle, variante",
+    "texte, numero, variante, complement",
     [
-        ("CE 293982(F65)", "CE293982", "F65"),
-        ("CE293982", "CE293982", ""),
-        ("ce 293982 (f65)", "CE293982", "f65"),
-        ("", "", ""),
+        # Formes relevees sur les factures reelles : prefixe de centrale et debut de
+        # libelle accoles au numero.
+        ("CE 293982(F65)", "293982", "F65", ""),
+        ("CE 123482Retour", "123482", "", "Retour"),
+        ("CE 124361Retour", "124361", "", "Retour"),
+        ("147375PHeure", "147375", "", "PHeure"),
+        ("153013Heure", "153013", "", "Heure"),
+        ("CE 157594LOT", "157594", "", "LOT"),
+        ("CE 244892Annulati", "244892", "", "Annulati"),
+        ("CE 286803M3", "286803", "", "M3"),
+        ("158010A7", "158010", "", "A7"),
+        ("158022R4", "158022", "", "R4"),
+        ("158022PM3", "158022", "", "PM3"),
+        ("CE 161574PM3", "161574", "", "PM3"),
+        # Numero deja propre.
+        ("184047", "184047", "", ""),
+        ("208720", "208720", "", ""),
+        # Aucun numero : la cellule n'apporte qu'un fragment de libelle.
+        ("Retour", "", "", "Retour"),
+        ("", "", "", ""),
+        (None, "", "", ""),
     ],
 )
-def test_normaliser_bon(texte, cle, variante):
-    assert normaliser_bon(texte) == (cle, variante)
+def test_decomposer_bon(texte, numero, variante, complement):
+    assert decomposer_bon(texte) == (numero, variante, complement)
+
+
+def test_decomposer_bon_ignore_les_chiffres_d_un_code_accole():
+    """`M3` contient un 3 : il ne doit jamais etre pris pour le numero de bon."""
+    assert decomposer_bon("CE 286803M3")[0] == "286803"
+    assert decomposer_bon("158022PM3")[0] == "158022"
+
+
+def test_decomposer_bon_retient_le_plus_long_groupe_si_aucun_n_est_assez_long():
+    """Plutot qu'un numero vide, on garde le meilleur candidat disponible."""
+    assert decomposer_bon("CE 42R4", longueur_min=6)[0] == "42"
 
 
 def test_cle_comparaison_ignore_accents_et_ponctuation():

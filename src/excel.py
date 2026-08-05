@@ -18,6 +18,9 @@ METRES_CUBES = '#,##0.000\\ "m³"'
 QUANTITE = "#,##0.000"
 POURCENT = '0.00\\ "%"'
 DATE = "DD/MM/YYYY"
+# Un numero de bon est un identifiant, pas une grandeur : force en texte pour qu'Excel
+# ne le reinterprete pas et que la colonne reste homogene.
+TEXTE = "@"
 
 _FOND_ENTETE = PatternFill("solid", fgColor="1F3864")
 _POLICE_ENTETE = Font(color="FFFFFF", bold=True)
@@ -114,7 +117,7 @@ def _detail_bons(classeur: Workbook, resultat: Resultat) -> None:
     colonnes = [
         Colonne("N° facture", 14),
         Colonne("Date facture", 13, DATE),
-        Colonne("N° Bon", 16),
+        Colonne("N° Bon", 14, TEXTE),
         Colonne("Variante", 10),
         Colonne("Date livraison", 13, DATE),
         Colonne("Site expediteur", 16),
@@ -143,7 +146,7 @@ def _detail_bons(classeur: Workbook, resultat: Resultat) -> None:
                 [
                     facture.numero,
                     facture.date_facture,
-                    l.n_bon_brut,
+                    l.n_bon,
                     l.variante,
                     l.date_livraison,
                     l.site_expediteur,

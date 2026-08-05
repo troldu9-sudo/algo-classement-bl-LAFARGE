@@ -104,19 +104,23 @@ def _controler_facture(facture: Facture, resultat: Resultat, config: Config) -> 
                 fichier,
             )
 
+    # Un meme bon couvre parfois plusieurs lignes de produit : il ne doit etre
+    # signale qu'une fois.
+    deja_signales: set[str] = set()
     for livraison in facture.livraisons:
-        if livraison.pdf_bon is None:
+        if livraison.pdf_bon is None and livraison.n_bon not in deja_signales:
+            deja_signales.add(livraison.n_bon)
             resultat.signaler(
                 "Bon sans PDF",
                 reference,
-                f"Aucun PDF trouve pour le bon {livraison.n_bon_brut}.",
+                f"Aucun PDF trouve pour le bon {livraison.n_bon}.",
                 fichier,
             )
         if livraison.montant_ht is None:
             resultat.signaler(
                 "Lecture",
                 reference,
-                f"Bon {livraison.n_bon_brut} : montant HT illisible.",
+                f"Bon {livraison.n_bon} : montant HT illisible.",
                 fichier,
             )
 
