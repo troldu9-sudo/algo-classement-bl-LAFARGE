@@ -1,0 +1,43 @@
+name: Construire le .exe Windows
+
+# Produit un executable autonome, a utiliser sur un poste ou Python ne peut pas
+# etre installe. Le fichier est a recuperer dans les artefacts de l'execution.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  executable:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Installer les dependances
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller pytest
+
+      - name: Lancer les tests
+        run: python -m pytest tests/ -q
+
+      - name: Construire l'executable
+        run: pyinstaller --onefile --name Suivi-Lafarge --console lancer.py
+
+      - name: Rassembler la livraison
+        run: |
+          mkdir livraison
+          copy dist\Suivi-Lafarge.exe livraison\
+          copy config.json livraison\
+          copy README.md livraison\
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Suivi-Lafarge-windows
+          path: livraison/
+          if-no-files-found: error

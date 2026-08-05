@@ -1,0 +1,19 @@
+# Environnement Python cree par LANCER.bat
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Construction du .exe
+build/
+dist/
+*.spec
+
+# Factures reelles deposees pour les tests : donnees commerciales et coordonnees
+# bancaires, elles ne doivent jamais partir sur GitHub.
+tests/fixtures/reel/*.pdf
+
+# Sorties de l'outil
+*.xlsx
+_Factures-decoupees/
+.journal.json

@@ -1,0 +1,58 @@
+{
+  "_aide": "Reglages de l'outil. Modifiable au Bloc-notes. Voir README.md, section Reglages.",
+
+  "dossier": "C:\\Users\\A.MOLIA\\OneDrive - BYCN\\Documents\\sUIVI BETON\\FA-Lafarge",
+  "sous_dossier_decoupe": "_Factures-decoupees",
+  "prefixe_tableur": "Suivi-Lafarge",
+
+  "decouper_pdf_groupes": true,
+  "apparier_bons_de_livraison": true,
+  "ouvrir_tableur_a_la_fin": true,
+
+  "types_page_ignores": ["CG"],
+  "tolerance_ligne": 4.0,
+  "tolerance_totaux": 0.02,
+  "lignes_adresse_max": 4,
+  "seuil_fusion_nombre": 6.0,
+
+  "_aide_colonnes": "Bornes en points PDF (595 pts = largeur A4). 'gauche' = repere sur le bord gauche du mot, 'droite' = sur le bord droit (colonnes de nombres alignees a droite). Utiliser LANCER.bat diagnostic pour relever les coordonnees reelles d'un PDF.",
+  "colonnes": {
+    "date_livraison":  {"repere": "gauche", "min":  25.0, "max":  55.0},
+    "site_expediteur": {"repere": "gauche", "min":  55.0, "max":  89.0},
+    "n_bon":           {"repere": "gauche", "min":  89.0, "max": 143.0},
+    "libelle":         {"repere": "gauche", "min": 143.0, "max": 300.0},
+    "poids_co2":       {"repere": "gauche", "min": 300.0, "max": 328.0},
+    "reduction_co2":   {"repere": "gauche", "min": 328.0, "max": 356.0},
+    "classe_gwr":      {"repere": "gauche", "min": 356.0, "max": 382.0},
+    "granulats_recycles": {"repere": "gauche", "min": 382.0, "max": 410.0},
+    "mx_demolition":   {"repere": "gauche", "min": 410.0, "max": 440.0},
+    "quantite":        {"repere": "droite", "min": 466.0, "max": 490.0},
+    "prix_unitaire":   {"repere": "droite", "min": 501.0, "max": 525.0},
+    "montant_ht":      {"repere": "droite", "min": 537.0, "max": 557.0},
+    "code_tva":        {"repere": "droite", "min": 557.0, "max": 575.0}
+  },
+
+  "_aide_colonnes_recap_tva": "Le recapitulatif de TVA du pied de page a ses propres colonnes, sans rapport avec celles du tableau de livraisons.",
+  "colonnes_recap_tva": {
+    "code":       {"repere": "droite", "min":  30.0, "max":  60.0},
+    "taux":       {"repere": "droite", "min":  85.0, "max": 115.0},
+    "montant_ht": {"repere": "droite", "min": 140.0, "max": 180.0},
+    "montant_tva":{"repere": "droite", "min": 200.0, "max": 240.0},
+    "montant_ttc":{"repere": "droite", "min": 260.0, "max": 300.0}
+  },
+
+  "_aide_motifs": "Expressions regulieres. Les accents et caracteres spéciaux du PDF Lafarge sont deja pris en compte (º U+00BA, ´ U+00B4).",
+  "motifs": {
+    "numero_facture":  "FACTURE\\s*N[\u00ba\u00b0o]?\\s*(\\d+)",
+    "date_facture":    "\\bdu\\s+(\\d{2}/\\d{2}/\\d{4})",
+    "date_echeance":   "DATE\\s+D['\u00b4\u2019]?ECHEANCE\\s*:?\\s*(\\d{2}/\\d{2}/\\d{4})",
+    "code_client":     "Code\\s+client\\s*:?\\s*(\\S+)",
+    "agence":          "^(AG\\s+\\S.*)$",
+    "total_ttc":       "A\\s+PAYER\\s+TTC\\s+([\\d\u00a0\u202f .,]+?)\\s*EUR",
+    "chantier":        "^Chantier\\s*:\\s*(?:(\\S+)\\s+-\\s+)?(.+)$",
+    "sous_total":      "^SOUS\\s+TOTAL\\s+CHANTIER\\b",
+    "total_general":   "^VOLUME\\s+TOTAL\\s+CLIENT\\b",
+    "entete_recap_tva": "CODE\\s+TAUX\\s+TVA\\s+MONTANT\\s+HT",
+    "adresse":         "^\\d+[\\s,]|^\\d{5}\\s|^(?:BP|CS|ZA|ZI|ZAC|LD|LIEU|LIEU-DIT|ROUTE|RTE|RUE|AVENUE|AV|CHEMIN|CHE|IMPASSE|IMP|BD|BOULEVARD|ALLEE|PLACE|PL|QUAI|SQUARE)\\b"
+  }
+}

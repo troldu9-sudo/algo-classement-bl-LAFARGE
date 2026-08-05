@@ -1,0 +1,9 @@
+Deposez ici une ou plusieurs factures Lafarge en PDF pour que les tests de
+tests/test_facture_reelle.py s'executent sur des documents authentiques.
+
+Les PDF de ce dossier sont volontairement exclus du depot (voir .gitignore) : une
+facture contient des donnees commerciales, des coordonnees bancaires et des noms de
+chantiers, qui n'ont pas a etre publies sur GitHub.
+
+Sans PDF ici, ces tests sont simplement ignores ; le reste de la suite tourne sur des
+factures fabriquees par src/demo.py.
