@@ -10,8 +10,7 @@ from src import excel, main
 def _executer(config):
     resultat = main.analyser(config)
     cible = config.dossier / excel.nom_fichier(config)
-    excel.ecrire(resultat, config, cible)
-    return resultat, cible
+    return resultat, excel.ecrire(resultat, config, cible)
 
 
 def test_le_dossier_entier_est_traite(config_demo):

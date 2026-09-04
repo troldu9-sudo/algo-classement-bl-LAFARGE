@@ -22,6 +22,11 @@ DATE = "DD/MM/YYYY"
 # ne le reinterprete pas et que la colonne reste homogene.
 TEXTE = "@"
 
+
+class TableurVerrouille(Exception):
+    """Le tableur ne peut pas etre ecrit : le message dit quoi faire."""
+
+
 _FOND_ENTETE = PatternFill("solid", fgColor="1F3864")
 _POLICE_ENTETE = Font(color="FFFFFF", bold=True)
 _POLICE_LIEN = Font(color="0563C1", underline="single")
@@ -248,8 +253,50 @@ def nom_fichier(config: Config, jour: date | None = None) -> str:
     return f"{config.prefixe_tableur}_{jour.isoformat()}.xlsx"
 
 
+def verrouille(chemin: Path) -> bool:
+    """Vrai si le fichier existe mais ne peut pas etre reecrit.
+
+    C'est le cas courant d'un tableur reste ouvert dans Excel : Windows le verrouille.
+    Sert a prevenir l'utilisateur avant de lire tout le dossier, plutot qu'apres.
+    """
+    if not chemin.exists():
+        return False
+    try:
+        with chemin.open("r+b"):
+            return False
+    except OSError:
+        return True
+
+
+def _candidats(cible: Path, nombre: int) -> list[Path]:
+    """La cible demandee, puis des noms suffixes en cas de verrou."""
+    return [cible] + [
+        cible.with_name(f"{cible.stem}_{numero}{cible.suffix}")
+        for numero in range(2, nombre + 2)
+    ]
+
+
+def _sauvegarder(classeur: Workbook, cible: Path, nombre_replis: int = 20) -> Path:
+    """Enregistre le classeur, en se rabattant sur un nom voisin si la cible est verrouillee.
+
+    Perdre le resultat d'une execution parce qu'Excel tient le fichier ouvert serait
+    absurde : on ecrit a cote et on le signale, plutot que d'echouer.
+    """
+    for candidat in _candidats(cible, nombre_replis):
+        try:
+            classeur.save(str(candidat))
+            return candidat
+        except PermissionError:
+            continue
+    raise TableurVerrouille(
+        f"Impossible d'ecrire le tableur dans {cible.parent}.\n"
+        f"  - {cible.name} et ses variantes sont ouverts dans Excel : fermez-les ;\n"
+        "  - ou ce dossier est en lecture seule, ou OneDrive n'a pas fini de synchroniser."
+    )
+
+
 def ecrire(resultat: Resultat, config: Config, cible: Path) -> Path:
-    """Ecrit le classeur complet et renvoie son chemin."""
+    """Ecrit le classeur complet et renvoie le chemin reellement utilise."""
     classeur = Workbook()
     classeur.remove(classeur.active)
     _synthese(classeur, resultat)
@@ -258,5 +305,4 @@ def ecrire(resultat: Resultat, config: Config, cible: Path) -> Path:
     _a_verifier(classeur, resultat)
     _parametres(classeur, resultat, config)
     cible.parent.mkdir(parents=True, exist_ok=True)
-    classeur.save(str(cible))
-    return cible
+    return _sauvegarder(classeur, cible)

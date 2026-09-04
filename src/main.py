@@ -244,17 +244,36 @@ def executer(arguments: list[str]) -> int:
             return 1
         config.dossier = dossier
 
+    cible = config.dossier / excel.nom_fichier(config)
+    if excel.verrouille(cible):
+        # Prevenir maintenant plutot qu'apres plusieurs minutes de lecture.
+        _dire()
+        _dire(f"ATTENTION : {cible.name} est ouvert dans Excel.")
+        _dire("Fermez-le pour qu'il soit mis a jour ; sinon un fichier voisin sera cree.")
+        _dire()
+
     resultat = analyser(config)
     if not resultat.factures and not resultat.anomalies:
         _dire("Aucune facture Lafarge n'a ete trouvee dans ce dossier.")
         return 1
 
-    cible = config.dossier / excel.nom_fichier(config)
-    excel.ecrire(resultat, config, cible)
-    _resumer(resultat, cible)
+    try:
+        ecrit = excel.ecrire(resultat, config, cible)
+    except excel.TableurVerrouille as err:
+        _dire()
+        _dire(f"ERREUR : {err}")
+        return 4
+
+    if ecrit != cible:
+        _dire()
+        _dire(f"{cible.name} etant ouvert dans Excel, le tableur a ete enregistre")
+        _dire(f"sous {ecrit.name}. Fermez Excel avant de relancer pour retrouver")
+        _dire("le nom habituel.")
+
+    _resumer(resultat, ecrit)
 
     if config.ouvrir_tableur_a_la_fin:
-        _ouvrir(cible)
+        _ouvrir(ecrit)
     return 0
 
 

@@ -118,6 +118,23 @@ factures, auquel cas voyez le mode diagnostic ci-dessous.
 
 ---
 
+## Si le tableur est déjà ouvert dans Excel
+
+C'est le cas le plus courant, puisque l'outil ouvre lui-même le tableur à la fin : au
+lancement suivant, Excel tient encore le fichier et Windows en interdit la réécriture.
+
+L'outil ne perd pas votre exécution pour autant :
+
+- il vous **prévient dès le départ**, avant de relire tout le dossier ;
+- à la fin, il enregistre sous un nom voisin — `Suivi-Lafarge_2026-08-05_2.xlsx` — et vous
+  dit lequel il a écrit.
+
+Pour retrouver le nom habituel, fermez simplement Excel avant de relancer. Les fichiers
+`_2`, `_3`… ne servent à rien une fois lus : vous pouvez les supprimer.
+
+Si l'outil signale qu'aucun nom n'est utilisable, c'est que le dossier est en lecture
+seule ou que OneDrive n'a pas fini de synchroniser.
+
 ## Si une valeur est mal lue
 
 Ouvrez une invite de commandes dans ce dossier et lancez :
